@@ -19,6 +19,8 @@ IOC_PATTERNS = {
 }
 
 DOMAIN_PATTERN = re.compile(r"\b(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\b", re.IGNORECASE)
+DEFANGED_DOT_PATTERN = re.compile(r"\[(?:\.|dot)\]|\((?:\.|dot)\)", re.IGNORECASE)
+DEFANGED_SCHEME_PATTERN = re.compile(r"\bhxxps?://", re.IGNORECASE)
 
 
 def identify_hash(value: str) -> str | None:
@@ -53,15 +55,16 @@ def inspect_ip(value: str) -> dict[str, object]:
 
 
 def extract_iocs(text: str) -> dict[str, list[str]]:
-    """Extract common indicators from arbitrary text and remove duplicates."""
+    """Extract and normalize common indicators from arbitrary text."""
+    normalized_text = _refang_ioc_text(text)
     results: dict[str, list[str]] = {}
     for name, pattern in IOC_PATTERNS.items():
-        values = pattern.findall(text)
+        values = pattern.findall(normalized_text)
         if name == "ipv4":
             values = [v for v in values if _valid_ipv4(v)]
         results[name] = sorted(set(values))
 
-    domains = set(DOMAIN_PATTERN.findall(text))
+    domains = set(DOMAIN_PATTERN.findall(normalized_text))
     for url in results["url"]:
         hostname = urlparse(url).hostname
         if hostname:
@@ -87,6 +90,16 @@ def summarize_auth_log(text: str) -> dict[str, object]:
         "invalid_user_attempts": len(invalid_users),
         "top_invalid_usernames": Counter(invalid_users).most_common(10),
     }
+
+
+def _refang_ioc_text(text: str) -> str:
+    """Normalize common analyst-safe IOC defanging without resolving or contacting it."""
+    normalized = DEFANGED_DOT_PATTERN.sub(".", text)
+
+    def _restore_scheme(match: re.Match[str]) -> str:
+        return "https://" if match.group(0).lower().startswith("hxxps") else "http://"
+
+    return DEFANGED_SCHEME_PATTERN.sub(_restore_scheme, normalized)
 
 
 def _valid_ipv4(value: str) -> bool:

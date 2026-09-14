@@ -26,6 +26,20 @@ def test_extract_iocs_filters_invalid_ipv4_and_extracts_domains():
     assert "suspicious.test" in result["domain"]
 
 
+def test_extract_iocs_normalizes_common_defanged_indicators():
+    text = (
+        "Investigate hxxps://portal[.]example/path and notify soc@alerts[.]example. "
+        "Related host: malware(dot)test."
+    )
+    result = extract_iocs(text)
+
+    assert "https://portal.example/path" in result["url"]
+    assert "soc@alerts.example" in result["email"]
+    assert "portal.example" in result["domain"]
+    assert "alerts.example" in result["domain"]
+    assert "malware.test" in result["domain"]
+
+
 def test_auth_summary():
     text = """
     sshd: Invalid user oracle from 203.0.113.7 port 22

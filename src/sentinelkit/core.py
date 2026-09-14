@@ -7,6 +7,7 @@ import ipaddress
 import re
 from collections import Counter
 from pathlib import Path
+from urllib.parse import urlparse
 
 HASH_LENGTHS = {32: "MD5", 40: "SHA-1", 64: "SHA-256", 96: "SHA-384", 128: "SHA-512"}
 
@@ -16,6 +17,8 @@ IOC_PATTERNS = {
     "email": re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
     "hash": re.compile(r"\b(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})\b"),
 }
+
+DOMAIN_PATTERN = re.compile(r"\b(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\b", re.IGNORECASE)
 
 
 def identify_hash(value: str) -> str | None:
@@ -57,6 +60,16 @@ def extract_iocs(text: str) -> dict[str, list[str]]:
         if name == "ipv4":
             values = [v for v in values if _valid_ipv4(v)]
         results[name] = sorted(set(values))
+
+    domains = set(DOMAIN_PATTERN.findall(text))
+    for url in results["url"]:
+        hostname = urlparse(url).hostname
+        if hostname:
+            domains.add(hostname)
+    for email in results["email"]:
+        domains.add(email.rsplit("@", 1)[-1])
+
+    results["domain"] = sorted(d.lower() for d in domains if not _valid_ipv4(d))
     return results
 
 
@@ -64,12 +77,15 @@ def summarize_auth_log(text: str) -> dict[str, object]:
     """Summarize common SSH authentication events from text logs."""
     failed = re.findall(r"Failed password.*?from\s+([^\s]+)", text, flags=re.IGNORECASE)
     accepted = re.findall(r"Accepted (?:password|publickey).*?from\s+([^\s]+)", text, flags=re.IGNORECASE)
+    invalid_users = re.findall(r"Invalid user\s+([^\s]+)", text, flags=re.IGNORECASE)
     failure_counts = Counter(failed)
     return {
         "failed_attempts": len(failed),
         "successful_logins": len(accepted),
         "top_failed_sources": failure_counts.most_common(10),
         "successful_sources": sorted(set(accepted)),
+        "invalid_user_attempts": len(invalid_users),
+        "top_invalid_usernames": Counter(invalid_users).most_common(10),
     }
 
 

@@ -11,7 +11,7 @@ SentinelKit is a Python toolkit for blue-team analysts, system administrators, s
 - 🔐 **Hash Inspector** — identify common digest formats and calculate SHA-256 for files
 - 🌐 **IP Inspector** — validate and classify IPv4/IPv6 addresses
 - 📄 **Log Analyzer** — summarize SSH authentication failures, successful logins, and invalid-user attempts
-- 🧩 **IOC Extractor** — extract IP addresses, domains, URLs, emails, and hashes from text
+- 🧩 **IOC Extractor** — extract IP addresses, domains, URLs, emails, and hashes from text, including common defanged forms such as `hxxps://example[.]org`
 - 💻 **CLI-first design** — scriptable commands with structured JSON output
 
 ## 🚀 Quick start
@@ -34,6 +34,8 @@ sentinelkit ip 8.8.8.8
 sentinelkit ioc ./sample.log
 sentinelkit logs ./auth.log
 ```
+
+The IOC extractor safely normalizes common analyst defanging such as `[.]`, `(.)`, `[dot]`, `(dot)`, `hxxp://`, and `hxxps://` before parsing. Normalization is local string processing only; SentinelKit does not resolve, request, or otherwise contact extracted indicators.
 
 Example IOC output:
 
@@ -61,6 +63,7 @@ Example IOC output:
 - [x] Hash inspection
 - [x] IP classification
 - [x] IOC extraction
+- [x] Defanged IOC normalization
 - [x] Domain extraction
 - [x] Authentication log summary
 - [x] Structured JSON output

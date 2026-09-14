@@ -6,13 +6,13 @@ SentinelKit is a Python toolkit for blue-team analysts, system administrators, s
 
 > SentinelKit is built for authorized defensive analysis. It is not an exploitation framework.
 
-## ✨ Initial capabilities
+## ✨ Current capabilities
 
-- 🔐 **Hash Inspector** — identify common digest formats and compare file hashes
+- 🔐 **Hash Inspector** — identify common digest formats and calculate SHA-256 for files
 - 🌐 **IP Inspector** — validate and classify IPv4/IPv6 addresses
-- 📄 **Log Analyzer** — summarize authentication events and surface suspicious patterns
+- 📄 **Log Analyzer** — summarize SSH authentication failures, successful logins, and invalid-user attempts
 - 🧩 **IOC Extractor** — extract IP addresses, domains, URLs, emails, and hashes from text
-- 💻 **CLI-first design** — scriptable commands with human-readable output
+- 💻 **CLI-first design** — scriptable commands with structured JSON output
 
 ## 🚀 Quick start
 
@@ -35,6 +35,18 @@ sentinelkit ioc ./sample.log
 sentinelkit logs ./auth.log
 ```
 
+Example IOC output:
+
+```json
+{
+  "ipv4": ["192.168.1.5"],
+  "url": ["https://sub.example.org/path"],
+  "email": ["admin@example.com"],
+  "hash": [],
+  "domain": ["example.com", "sub.example.org"]
+}
+```
+
 ## 🧱 Project principles
 
 - Defensive and authorization-first
@@ -49,8 +61,11 @@ sentinelkit logs ./auth.log
 - [x] Hash inspection
 - [x] IP classification
 - [x] IOC extraction
+- [x] Domain extraction
 - [x] Authentication log summary
-- [ ] JSON output for SIEM pipelines
+- [x] Structured JSON output
+- [x] Automated test suite
+- [x] GitHub Actions workflow
 - [ ] Rule-based IOC enrichment
 - [ ] Plugin interface
 - [ ] Packaged releases

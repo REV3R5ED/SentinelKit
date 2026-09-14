@@ -19,6 +19,9 @@ IOC_PATTERNS = {
 }
 
 DOMAIN_PATTERN = re.compile(r"\b(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\b", re.IGNORECASE)
+IPV6_CANDIDATE_PATTERN = re.compile(
+    r"(?<![\w:.])\[?[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]+\]?(?![\w:.])"
+)
 DEFANGED_DOT_PATTERN = re.compile(r"\[(?:\.|dot)\]|\((?:\.|dot)\)", re.IGNORECASE)
 DEFANGED_SCHEME_PATTERN = re.compile(r"\bhxxps?://", re.IGNORECASE)
 
@@ -64,15 +67,17 @@ def extract_iocs(text: str) -> dict[str, list[str]]:
             values = [v for v in values if _valid_ipv4(v)]
         results[name] = sorted(set(values))
 
+    results["ipv6"] = _extract_ipv6(normalized_text)
+
     domains = set(DOMAIN_PATTERN.findall(normalized_text))
     for url in results["url"]:
         hostname = urlparse(url).hostname
-        if hostname:
+        if hostname and not _valid_ip(hostname):
             domains.add(hostname)
     for email in results["email"]:
         domains.add(email.rsplit("@", 1)[-1])
 
-    results["domain"] = sorted(d.lower() for d in domains if not _valid_ipv4(d))
+    results["domain"] = sorted(d.lower() for d in domains if not _valid_ip(d))
     return results
 
 
@@ -92,6 +97,20 @@ def summarize_auth_log(text: str) -> dict[str, object]:
     }
 
 
+def _extract_ipv6(text: str) -> list[str]:
+    """Extract valid IPv6 literals and return canonical, deduplicated values."""
+    values: set[str] = set()
+    for match in IPV6_CANDIDATE_PATTERN.finditer(text):
+        candidate = match.group(0).strip("[]").rstrip(".")
+        try:
+            address = ipaddress.ip_address(candidate)
+        except ValueError:
+            continue
+        if address.version == 6:
+            values.add(str(address))
+    return sorted(values)
+
+
 def _refang_ioc_text(text: str) -> str:
     """Normalize common analyst-safe IOC defanging without resolving or contacting it."""
     normalized = DEFANGED_DOT_PATTERN.sub(".", text)
@@ -100,6 +119,14 @@ def _refang_ioc_text(text: str) -> str:
         return "https://" if match.group(0).lower().startswith("hxxps") else "http://"
 
     return DEFANGED_SCHEME_PATTERN.sub(_restore_scheme, normalized)
+
+
+def _valid_ip(value: str) -> bool:
+    try:
+        ipaddress.ip_address(value)
+        return True
+    except ValueError:
+        return False
 
 
 def _valid_ipv4(value: str) -> bool:

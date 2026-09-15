@@ -40,6 +40,22 @@ def test_extract_iocs_normalizes_common_defanged_indicators():
     assert "malware.test" in result["domain"]
 
 
+def test_extract_iocs_extracts_and_canonicalizes_ipv6():
+    text = "Observed 2001:0db8:0:0:0:0:0:1 and compressed 2001:db8::1 plus fe80::a:b:c:d."
+    result = extract_iocs(text)
+
+    assert result["ipv6"] == ["2001:db8::1", "fe80::a:b:c:d"]
+
+
+def test_extract_iocs_handles_bracketed_ipv6_url_without_domain_pollution():
+    text = "Investigate https://[2001:db8::5]/login and ignore timestamp 12:34:56."
+    result = extract_iocs(text)
+
+    assert result["ipv6"] == ["2001:db8::5"]
+    assert "2001:db8::5" not in result["domain"]
+    assert "12:34:56" not in result["ipv6"]
+
+
 def test_auth_summary():
     text = """
     sshd: Invalid user oracle from 203.0.113.7 port 22

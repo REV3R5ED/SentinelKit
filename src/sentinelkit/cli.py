@@ -12,6 +12,7 @@ from .core import (
     inspect_ip,
     sha256_file,
     summarize_auth_log,
+    summarize_iocs,
 )
 
 
@@ -36,6 +37,11 @@ def main() -> None:
     ioc_cmd = sub.add_parser("ioc", help="extract indicators from a text file")
     ioc_cmd.add_argument("file")
 
+    triage_cmd = sub.add_parser(
+        "triage", help="summarize IOC counts and assign an explainable priority"
+    )
+    triage_cmd.add_argument("file")
+
     log_cmd = sub.add_parser("logs", help="summarize authentication log events")
     log_cmd.add_argument("file")
 
@@ -55,6 +61,12 @@ def main() -> None:
     elif args.command == "ioc":
         _print(
             extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace"))
+        )
+    elif args.command == "triage":
+        _print(
+            summarize_iocs(
+                Path(args.file).read_text(encoding="utf-8", errors="replace")
+            )
         )
     elif args.command == "logs":
         _print(

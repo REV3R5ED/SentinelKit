@@ -3,6 +3,7 @@ from sentinelkit.core import (
     identify_hash,
     inspect_ip,
     summarize_auth_log,
+    summarize_iocs,
 )
 
 
@@ -61,6 +62,29 @@ def test_extract_iocs_handles_bracketed_ipv6_url_without_domain_pollution():
     assert result["ipv6"] == ["2001:db8::5"]
     assert "2001:db8::5" not in result["domain"]
     assert "12:34:56" not in result["ipv6"]
+
+
+def test_summarize_iocs_assigns_explainable_priority():
+    result = summarize_iocs(
+        "Investigate hxxps://portal[.]example/path from 192.0.2.10 with " + "a" * 64
+    )
+
+    assert result["triage_priority"] == "high"
+    assert result["counts"]["url"] == 1
+    assert result["counts"]["hash"] == 1
+    assert result["counts"]["ipv4"] == 1
+    assert result["reasons"] == [
+        "URL present",
+        "cryptographic hash present",
+        "network address present",
+    ]
+
+
+def test_summarize_iocs_network_only_is_medium_priority():
+    result = summarize_iocs("Observed source 203.0.113.7")
+
+    assert result["triage_priority"] == "medium"
+    assert result["reasons"] == ["network address present"]
 
 
 def test_auth_summary():

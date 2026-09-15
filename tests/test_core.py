@@ -47,8 +47,7 @@ def test_extract_iocs_normalizes_common_defanged_indicators():
 
 def test_extract_iocs_extracts_and_canonicalizes_ipv6():
     text = (
-        "Observed 2001:0db8:0:0:0:0:0:1 and compressed 2001:db8::1 "
-        "plus fe80::a:b:c:d."
+        "Observed 2001:0db8:0:0:0:0:0:1 and compressed 2001:db8::1 plus fe80::a:b:c:d."
     )
     result = extract_iocs(text)
 

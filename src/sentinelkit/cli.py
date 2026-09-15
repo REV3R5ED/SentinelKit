@@ -54,9 +54,7 @@ def main() -> None:
             parser.error(str(exc))
     elif args.command == "ioc":
         _print(
-            extract_iocs(
-                Path(args.file).read_text(encoding="utf-8", errors="replace")
-            )
+            extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace"))
         )
     elif args.command == "logs":
         _print(

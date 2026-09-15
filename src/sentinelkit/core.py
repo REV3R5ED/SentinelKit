@@ -90,6 +90,40 @@ def extract_iocs(text: str) -> dict[str, list[str]]:
     return results
 
 
+def summarize_iocs(text: str) -> dict[str, object]:
+    """Return deterministic IOC counts and an explainable triage priority.
+
+    Priority is intentionally heuristic rather than a threat verdict: URLs or hashes
+    are high priority, network addresses are medium priority, and other extracted
+    indicators are low priority. SentinelKit performs no network enrichment here.
+    """
+    indicators = extract_iocs(text)
+    ordered_types = ("ipv4", "ipv6", "url", "email", "hash", "domain")
+    counts = {name: len(indicators[name]) for name in ordered_types}
+    reasons: list[str] = []
+
+    if counts["url"]:
+        reasons.append("URL present")
+    if counts["hash"]:
+        reasons.append("cryptographic hash present")
+    if counts["ipv4"] or counts["ipv6"]:
+        reasons.append("network address present")
+
+    if counts["url"] or counts["hash"]:
+        priority = "high"
+    elif counts["ipv4"] or counts["ipv6"]:
+        priority = "medium"
+    else:
+        priority = "low"
+
+    return {
+        "total_indicators": sum(counts.values()),
+        "counts": counts,
+        "triage_priority": priority,
+        "reasons": reasons,
+    }
+
+
 def summarize_auth_log(text: str) -> dict[str, object]:
     """Summarize common SSH authentication events from text logs."""
     failed = re.findall(r"Failed password.*?from\s+([^\s]+)", text, flags=re.IGNORECASE)

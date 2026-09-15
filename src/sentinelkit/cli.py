@@ -6,7 +6,13 @@ import argparse
 import json
 from pathlib import Path
 
-from .core import extract_iocs, identify_hash, inspect_ip, sha256_file, summarize_auth_log
+from .core import (
+    extract_iocs,
+    identify_hash,
+    inspect_ip,
+    sha256_file,
+    summarize_auth_log,
+)
 
 
 def _print(data: object) -> None:

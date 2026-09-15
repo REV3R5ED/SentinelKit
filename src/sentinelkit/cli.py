@@ -6,7 +6,13 @@ import argparse
 import json
 from pathlib import Path
 
-from .core import extract_iocs, identify_hash, inspect_ip, sha256_file, summarize_auth_log
+from .core import (
+    extract_iocs,
+    identify_hash,
+    inspect_ip,
+    sha256_file,
+    summarize_auth_log,
+)
 
 
 def _print(data: object) -> None:
@@ -14,10 +20,14 @@ def _print(data: object) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="sentinelkit", description="Defensive security analysis toolkit")
+    parser = argparse.ArgumentParser(
+        prog="sentinelkit", description="Defensive security analysis toolkit"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    hash_cmd = sub.add_parser("hash", help="calculate SHA-256 and identify digest strings")
+    hash_cmd = sub.add_parser(
+        "hash", help="calculate SHA-256 and identify digest strings"
+    )
     hash_cmd.add_argument("value", help="file path or digest string")
 
     ip_cmd = sub.add_parser("ip", help="classify an IP address")
@@ -43,9 +53,15 @@ def main() -> None:
         except ValueError as exc:
             parser.error(str(exc))
     elif args.command == "ioc":
-        _print(extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace")))
+        _print(
+            extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace"))
+        )
     elif args.command == "logs":
-        _print(summarize_auth_log(Path(args.file).read_text(encoding="utf-8", errors="replace")))
+        _print(
+            summarize_auth_log(
+                Path(args.file).read_text(encoding="utf-8", errors="replace")
+            )
+        )
 
 
 if __name__ == "__main__":

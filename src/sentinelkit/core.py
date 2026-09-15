@@ -9,7 +9,13 @@ from collections import Counter
 from pathlib import Path
 from urllib.parse import urlparse
 
-HASH_LENGTHS = {32: "MD5", 40: "SHA-1", 64: "SHA-256", 96: "SHA-384", 128: "SHA-512"}
+HASH_LENGTHS = {
+    32: "MD5",
+    40: "SHA-1",
+    64: "SHA-256",
+    96: "SHA-384",
+    128: "SHA-512",
+}
 
 IOC_PATTERNS = {
     "ipv4": re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])"),
@@ -18,7 +24,10 @@ IOC_PATTERNS = {
     "hash": re.compile(r"\b(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})\b"),
 }
 
-DOMAIN_PATTERN = re.compile(r"\b(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\b", re.IGNORECASE)
+DOMAIN_PATTERN = re.compile(
+    r"\b(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,63}\b",
+    re.IGNORECASE,
+)
 IPV6_CANDIDATE_PATTERN = re.compile(
     r"(?<![\w:.])\[?[0-9A-Fa-f:.]*:[0-9A-Fa-f:.]+\]?(?![\w:.])"
 )
@@ -84,7 +93,11 @@ def extract_iocs(text: str) -> dict[str, list[str]]:
 def summarize_auth_log(text: str) -> dict[str, object]:
     """Summarize common SSH authentication events from text logs."""
     failed = re.findall(r"Failed password.*?from\s+([^\s]+)", text, flags=re.IGNORECASE)
-    accepted = re.findall(r"Accepted (?:password|publickey).*?from\s+([^\s]+)", text, flags=re.IGNORECASE)
+    accepted = re.findall(
+        r"Accepted (?:password|publickey).*?from\s+([^\s]+)",
+        text,
+        flags=re.IGNORECASE,
+    )
     invalid_users = re.findall(r"Invalid user\s+([^\s]+)", text, flags=re.IGNORECASE)
     failure_counts = Counter(failed)
     return {

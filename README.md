@@ -1,8 +1,8 @@
 # 🛡️ SentinelKit
 
-**Defensive security utilities for fast, explainable analysis.**
+**Python Blue Team and SOC analyst CLI for fast, explainable defensive security analysis.**
 
-SentinelKit is a Python toolkit for blue-team analysts, system administrators, students, and developers who need small, auditable security utilities without a heavy platform.
+SentinelKit is a lightweight defensive cybersecurity toolkit for Blue Team and SOC workflows. It gives security analysts, system administrators, students, and developers auditable command-line utilities for IOC extraction, IP analysis, file hashing, and authentication-log triage without requiring a heavy security platform.
 
 > SentinelKit is built for authorized defensive analysis. It is not an exploitation framework.
 
@@ -13,6 +13,10 @@ SentinelKit is a Python toolkit for blue-team analysts, system administrators, s
 - 📄 **Log Analyzer** — summarize SSH authentication failures, successful logins, and invalid-user attempts
 - 🧩 **IOC Extractor** — extract IPv4/IPv6 addresses, domains, URLs, emails, and hashes from text, including common defanged forms such as `hxxps://example[.]org`
 - 💻 **CLI-first design** — scriptable commands with structured JSON output
+
+## 🎯 Who it is for
+
+SentinelKit is designed as a small, inspectable security tool for SOC analysts and Blue Team practitioners who want deterministic local analysis that can also fit into scripts, incident-response notes, SIEM-adjacent workflows, and cybersecurity labs.
 
 ## 🚀 Quick start
 
@@ -49,6 +53,10 @@ Example IOC output:
   "domain": ["example.com", "sub.example.org"]
 }
 ```
+
+## 🔎 Discoverability keywords
+
+SentinelKit focuses on defensive cybersecurity, Blue Team operations, SOC analyst workflows, incident response, IOC extraction and normalization, authentication-log analysis, Python security tooling, and command-line security automation.
 
 ## 🧱 Project principles
 

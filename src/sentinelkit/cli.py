@@ -64,7 +64,9 @@ def main() -> None:
         )
     elif args.command == "triage":
         _print(
-            summarize_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace"))
+            summarize_iocs(
+                Path(args.file).read_text(encoding="utf-8", errors="replace")
+            )
         )
     elif args.command == "logs":
         _print(

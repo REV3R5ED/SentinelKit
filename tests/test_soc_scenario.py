@@ -1,6 +1,6 @@
-from sentinelkit.core import extract_iocs
-
 from pathlib import Path
+
+from sentinelkit.core import extract_iocs
 
 SCENARIO = Path(__file__).parents[1] / "examples" / "soc_phishing_case.txt"
 

@@ -1,0 +1,12 @@
+SOC CASE: Credential-phishing triage
+
+Ticket: INC-2026-014
+Summary: A user reported a suspicious account-verification message. This sample is synthetic and safe for offline analysis.
+
+Reported sender: security@accounts[.]example
+Message URL: hxxps://accounts[.]example/verify
+Proxy observation: 198.51.100.42
+IPv6 observation: 2001:db8::42
+Attachment SHA-256: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+
+Analyst goal: extract and normalize indicators without resolving domains, contacting URLs, scanning hosts, or otherwise interacting with external systems.

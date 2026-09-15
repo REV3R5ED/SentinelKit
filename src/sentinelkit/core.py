@@ -20,12 +20,8 @@ HASH_LENGTHS = {
 IOC_PATTERNS = {
     "ipv4": re.compile(r"(?<![\w.])(?:\d{1,3}\.){3}\d{1,3}(?![\w.])"),
     "url": re.compile(r"https?://[^\s<>\"']+", re.IGNORECASE),
-    "email": re.compile(
-        r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE
-    ),
-    "hash": re.compile(
-        r"\b(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})\b"
-    ),
+    "email": re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.IGNORECASE),
+    "hash": re.compile(r"\b(?:[a-fA-F0-9]{32}|[a-fA-F0-9]{40}|[a-fA-F0-9]{64})\b"),
 }
 
 DOMAIN_PATTERN = re.compile(
@@ -96,17 +92,13 @@ def extract_iocs(text: str) -> dict[str, list[str]]:
 
 def summarize_auth_log(text: str) -> dict[str, object]:
     """Summarize common SSH authentication events from text logs."""
-    failed = re.findall(
-        r"Failed password.*?from\s+([^\s]+)", text, flags=re.IGNORECASE
-    )
+    failed = re.findall(r"Failed password.*?from\s+([^\s]+)", text, flags=re.IGNORECASE)
     accepted = re.findall(
         r"Accepted (?:password|publickey).*?from\s+([^\s]+)",
         text,
         flags=re.IGNORECASE,
     )
-    invalid_users = re.findall(
-        r"Invalid user\s+([^\s]+)", text, flags=re.IGNORECASE
-    )
+    invalid_users = re.findall(r"Invalid user\s+([^\s]+)", text, flags=re.IGNORECASE)
     failure_counts = Counter(failed)
     return {
         "failed_attempts": len(failed),

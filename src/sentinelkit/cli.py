@@ -16,13 +16,33 @@ from .core import (
 )
 
 
-def _print(data: object) -> None:
-    print(json.dumps(data, indent=2, default=str))
+def _print(data: object, output_format: str = "json") -> None:
+    """Render CLI output while keeping JSON as the stable default."""
+    if output_format == "json":
+        print(json.dumps(data, indent=2, default=str))
+        return
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            label = key.replace("_", " ").title()
+            if isinstance(value, (dict, list)):
+                value = json.dumps(value, sort_keys=True, default=str)
+            print(f"{label}: {value}")
+        return
+
+    print(data)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sentinelkit", description="Defensive security analysis toolkit"
+    )
+    parser.add_argument(
+        "--format",
+        choices=("json", "text"),
+        default="json",
+        dest="output_format",
+        help="output format (default: json)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -50,29 +70,38 @@ def main() -> None:
     if args.command == "hash":
         candidate = Path(args.value)
         if candidate.is_file():
-            _print({"file": str(candidate), "sha256": sha256_file(candidate)})
+            _print(
+                {"file": str(candidate), "sha256": sha256_file(candidate)},
+                args.output_format,
+            )
         else:
-            _print({"value": args.value, "likely_type": identify_hash(args.value)})
+            _print(
+                {"value": args.value, "likely_type": identify_hash(args.value)},
+                args.output_format,
+            )
     elif args.command == "ip":
         try:
-            _print(inspect_ip(args.address))
+            _print(inspect_ip(args.address), args.output_format)
         except ValueError as exc:
             parser.error(str(exc))
     elif args.command == "ioc":
         _print(
-            extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace"))
+            extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace")),
+            args.output_format,
         )
     elif args.command == "triage":
         _print(
             summarize_iocs(
                 Path(args.file).read_text(encoding="utf-8", errors="replace")
-            )
+            ),
+            args.output_format,
         )
     elif args.command == "logs":
         _print(
             summarize_auth_log(
                 Path(args.file).read_text(encoding="utf-8", errors="replace")
-            )
+            ),
+            args.output_format,
         )
 
 

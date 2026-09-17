@@ -67,6 +67,25 @@ def test_logs_command_summarizes_authentication_events(monkeypatch, capsys, tmp_
     assert result["successful_sources"] == ["10.0.0.5"]
 
 
+def test_text_format_is_human_readable(monkeypatch, capsys):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["sentinelkit", "--format", "text", "hash", "a" * 64],
+    )
+
+    main()
+
+    output = capsys.readouterr().out
+    assert "Value: " + "a" * 64 in output
+    assert "Likely Type: SHA-256" in output
+
+
+def test_json_remains_default_for_automation(monkeypatch, capsys):
+    result = _run_cli(monkeypatch, capsys, "hash", "a" * 64)
+    assert result["likely_type"] == "SHA-256"
+
+
 def test_invalid_ip_returns_argparse_error(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["sentinelkit", "ip", "not-an-ip"])
 

@@ -10,12 +10,32 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "REV3R5ED"}]
-keywords = ["cybersecurity", "blue-team", "ioc", "logs", "security-tools"]
+keywords = [
+  "cybersecurity",
+  "blue-team",
+  "soc",
+  "incident-response",
+  "ioc",
+  "log-analysis",
+  "defensive-security",
+  "security-tools",
+]
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Information Technology",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "License :: OSI Approved :: MIT License",
   "Topic :: Security",
+  "Topic :: System :: Systems Administration",
 ]
+
+[project.urls]
+Repository = "https://github.com/REV3R5ED/SentinelKit"
+Issues = "https://github.com/REV3R5ED/SentinelKit/issues"
 
 [project.scripts]
 sentinelkit = "sentinelkit.cli:main"

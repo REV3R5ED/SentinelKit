@@ -33,6 +33,15 @@ def _print(data: object, output_format: str = "json") -> None:
     print(data)
 
 
+def _read_text_file(parser: argparse.ArgumentParser, value: str) -> str:
+    """Read analyst-supplied text or fail with a concise CLI error."""
+    path = Path(value)
+    try:
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        parser.error(f"cannot read {path}: {exc.strerror or exc}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="sentinelkit", description="Defensive security analysis toolkit"
@@ -85,24 +94,11 @@ def main() -> None:
         except ValueError as exc:
             parser.error(str(exc))
     elif args.command == "ioc":
-        _print(
-            extract_iocs(Path(args.file).read_text(encoding="utf-8", errors="replace")),
-            args.output_format,
-        )
+        _print(extract_iocs(_read_text_file(parser, args.file)), args.output_format)
     elif args.command == "triage":
-        _print(
-            summarize_iocs(
-                Path(args.file).read_text(encoding="utf-8", errors="replace")
-            ),
-            args.output_format,
-        )
+        _print(summarize_iocs(_read_text_file(parser, args.file)), args.output_format)
     elif args.command == "logs":
-        _print(
-            summarize_auth_log(
-                Path(args.file).read_text(encoding="utf-8", errors="replace")
-            ),
-            args.output_format,
-        )
+        _print(summarize_auth_log(_read_text_file(parser, args.file)), args.output_format)
 
 
 if __name__ == "__main__":

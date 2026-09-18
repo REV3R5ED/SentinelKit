@@ -98,7 +98,9 @@ def main() -> None:
     elif args.command == "triage":
         _print(summarize_iocs(_read_text_file(parser, args.file)), args.output_format)
     elif args.command == "logs":
-        _print(summarize_auth_log(_read_text_file(parser, args.file)), args.output_format)
+        _print(
+            summarize_auth_log(_read_text_file(parser, args.file)), args.output_format
+        )
 
 
 if __name__ == "__main__":

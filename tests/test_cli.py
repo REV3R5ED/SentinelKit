@@ -94,3 +94,19 @@ def test_invalid_ip_returns_argparse_error(monkeypatch, capsys):
 
     assert exc_info.value.code == 2
     assert "not-an-ip" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("command", ["ioc", "triage", "logs"])
+def test_file_commands_report_missing_input_without_traceback(
+    monkeypatch, capsys, tmp_path, command
+):
+    missing = tmp_path / "missing.log"
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", command, str(missing)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert f"cannot read {missing}" in captured.err
+    assert "Traceback" not in captured.err

@@ -18,6 +18,10 @@ SentinelKit is a lightweight defensive cybersecurity toolkit for Blue Team and S
 
 SentinelKit is designed as a small, inspectable security tool for SOC analysts and Blue Team practitioners who want deterministic local analysis that can also fit into scripts, incident-response notes, SIEM-adjacent workflows, and cybersecurity labs.
 
+### Reviewer quick path
+
+Want to see the project working without external infrastructure? Run the [reproducible defensive triage demo](docs/portfolio-demo.md). It uses synthetic evidence to exercise authentication-log triage, defanged IOC normalization, IP classification, and evidence hashing entirely locally.
+
 ## 🚀 Quick start
 
 ```bash
@@ -79,9 +83,18 @@ SentinelKit focuses on defensive cybersecurity, Blue Team operations, SOC analys
 - [x] Structured JSON output
 - [x] Automated test suite
 - [x] GitHub Actions workflow
+- [x] Reproducible defensive portfolio demo
 - [ ] Rule-based IOC enrichment
 - [ ] Plugin interface
 - [ ] Packaged releases
+
+## 🔗 Related portfolio projects
+
+- [LogLens](https://github.com/REV3R5ED/LogLens) — deterministic log analysis and anomaly reporting
+- [NetScope](https://github.com/REV3R5ED/NetScope) — bounded network visibility and diagnostics
+- [AutoOPS](https://github.com/REV3R5ED/AutoOPS) — safe IT operations checks and automation
+
+Together, the projects cover a practical defensive workflow from operational readiness and network diagnostics through log analysis and SOC-oriented triage.
 
 ## ⚖️ Responsible use
 

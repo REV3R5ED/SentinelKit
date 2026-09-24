@@ -24,14 +24,30 @@ Want to see the project working without external infrastructure? Run the [reprod
 
 ## 🚀 Quick start
 
+SentinelKit is currently pre-release: the package metadata is versioned, but there is not yet a tagged GitHub release. For evaluation, install directly from the repository so the source you run is explicit.
+
+```bash
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+python -m pip install "git+https://github.com/REV3R5ED/SentinelKit.git"
+sentinelkit --help
+```
+
+For a reproducible evaluation, replace the URL with `git+https://github.com/REV3R5ED/SentinelKit.git@<commit-sha>` using the commit you intend to review.
+
+### Contributor setup
+
+Use an editable checkout when developing or running the repository test suite:
+
 ```bash
 git clone https://github.com/REV3R5ED/SentinelKit.git
 cd SentinelKit
 python -m venv .venv
 # Linux/macOS: source .venv/bin/activate
 # Windows: .venv\Scripts\activate
-pip install -e .
-sentinelkit --help
+python -m pip install -e .
+pytest
 ```
 
 ## Examples

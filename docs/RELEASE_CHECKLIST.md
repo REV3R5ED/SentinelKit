@@ -14,10 +14,12 @@ SentinelKit releases should represent a reproducible, tested defensive-analysis 
 The release candidate must pass the same gates enforced by CI:
 
 ```bash
-python -m pip install -e . pytest ruff build twine
+python -m pip install -e . pytest ruff mypy coverage build twine
 ruff check src tests
 ruff format --check src tests
-pytest -q
+mypy src
+coverage run -m pytest -q
+coverage report
 python -m build
 python -m twine check dist/*
 ```

@@ -1,10 +1,12 @@
 import hashlib
 import json
+import pathlib
 import sys
 
 import pytest
 
-from sentinelkit.cli import main
+from sentinelkit import __version__
+from sentinelkit.cli import _print, main
 
 
 def _run_cli(monkeypatch, capsys, *args: str) -> dict[str, object]:
@@ -110,3 +112,245 @@ def test_file_commands_report_missing_input_without_traceback(
     assert exc_info.value.code == 2
     assert f"cannot read {missing}" in captured.err
     assert "Traceback" not in captured.err
+
+
+def test_version_flag_reports_package_version(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", "--version"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 0
+    assert __version__ in capsys.readouterr().out
+
+
+def test_file_argument_dash_reads_stdin(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", "ioc", "-"])
+    monkeypatch.setattr(sys, "stdin", _FakeStdin("admin@example.com 192.168.1.5"))
+
+    main()
+    result = json.loads(capsys.readouterr().out)
+
+    assert result["email"] == ["admin@example.com"]
+    assert result["ipv4"] == ["192.168.1.5"]
+
+
+def test_journalctl_pipe_style_logs_from_stdin(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", "logs", "-"])
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        _FakeStdin("sshd: Failed password for root from 203.0.113.7 port 22 ssh2\n"),
+    )
+
+    main()
+    result = json.loads(capsys.readouterr().out)
+
+    assert result["failed_attempts"] == 1
+
+
+def test_hash_of_unreadable_file_reports_clean_error(monkeypatch, capsys, tmp_path):
+    sample = tmp_path / "secret.bin"
+    sample.write_bytes(b"sentinelkit")
+
+    real_open = pathlib.Path.open
+
+    def denied_open(self, *args, **kwargs):
+        if str(self) == str(sample):
+            raise PermissionError(13, "Permission denied")
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(pathlib.Path, "open", denied_open)
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", "hash", str(sample)])
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    captured = capsys.readouterr()
+    assert exc_info.value.code == 2
+    assert f"cannot read {sample}" in captured.err
+    assert "Traceback" not in captured.err
+
+
+def test_hash_dash_hashes_stdin_bytes(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["sentinelkit", "hash", "-"])
+    monkeypatch.setattr(sys, "stdin", _FakeStdin("sentinelkit"))
+
+    main()
+    result = json.loads(capsys.readouterr().out)
+
+    assert result["source"] == "stdin"
+    assert result["sha256"] == hashlib.sha256(b"sentinelkit").hexdigest()
+
+
+def test_ioc_stix_format_emits_bundle(monkeypatch, capsys, tmp_path):
+    sample = tmp_path / "case.txt"
+    sample.write_text("see https://example.com/x and 203.0.113.7", encoding="utf-8")
+    monkeypatch.setattr(
+        sys, "argv", ["sentinelkit", "--format", "stix", "ioc", str(sample)]
+    )
+
+    main()
+    bundle = json.loads(capsys.readouterr().out)
+
+    assert bundle["type"] == "bundle"
+    patterns = {
+        obj["pattern"] for obj in bundle["objects"] if obj["type"] == "indicator"
+    }
+    assert "[url:value = 'https://example.com/x']" in patterns
+    assert "[ipv4-addr:value = '203.0.113.7']" in patterns
+
+
+def test_stix_format_rejected_for_other_commands(monkeypatch, capsys):
+    monkeypatch.setattr(
+        sys, "argv", ["sentinelkit", "--format", "stix", "ip", "8.8.8.8"]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 2
+    assert "stix" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["sentinelkit", "ioc", "--format", "stix", "-"],
+        ["sentinelkit", "--format", "stix", "ioc", "-"],
+    ],
+)
+def test_stix_format_accepted_before_or_after_subcommand(monkeypatch, capsys, argv):
+    monkeypatch.setattr(sys, "argv", argv)
+    monkeypatch.setattr(sys, "stdin", _FakeStdin("see 203.0.113.7"))
+
+    main()
+    bundle = json.loads(capsys.readouterr().out)
+
+    assert bundle["type"] == "bundle"
+    assert any(
+        obj.get("pattern") == "[ipv4-addr:value = '203.0.113.7']"
+        for obj in bundle["objects"]
+    )
+
+
+def test_triage_enrich_flag_applies_blocklists(monkeypatch, capsys, tmp_path):
+    case = tmp_path / "case.txt"
+    case.write_text("saw beacon to evil.example", encoding="utf-8")
+    config = tmp_path / "blocklists.toml"
+    config.write_text('[blocklists]\ndomains = ["evil.example"]\n', encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["sentinelkit", "triage", "--enrich", str(config), str(case)],
+    )
+
+    main()
+    result = json.loads(capsys.readouterr().out)
+
+    assert result["triage_priority"] == "high"
+    assert "domain evil.example (blocklisted domain)" in result["reasons"]
+
+
+def test_triage_enrich_flag_rejects_bad_config(monkeypatch, capsys, tmp_path):
+    case = tmp_path / "case.txt"
+    case.write_text("nothing here", encoding="utf-8")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "sentinelkit",
+            "triage",
+            "--enrich",
+            str(tmp_path / "missing.toml"),
+            str(case),
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 2
+    assert "Traceback" not in capsys.readouterr().err
+
+
+def test_logs_accepts_format_threshold_and_window(monkeypatch, capsys, tmp_path):
+    sample = tmp_path / "auth.log"
+    sample.write_text(
+        "2026-10-02T14:31:05+00:00 web sshd[1]: "
+        "Failed password for root from 203.0.113.9 port 22 ssh2\n"
+        "2026-10-02T14:31:40+00:00 web sshd[2]: "
+        "Failed password for root from 203.0.113.9 port 22 ssh2\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "sentinelkit",
+            "logs",
+            "--log-format",
+            "journal",
+            "--threshold",
+            "2",
+            "--window",
+            "5",
+            str(sample),
+        ],
+    )
+
+    main()
+    result = json.loads(capsys.readouterr().out)
+
+    assert result["log_format"] == "journal"
+    assert len(result["brute_force_suspects"]) == 1
+    assert result["brute_force_suspects"][0]["source"] == "203.0.113.9"
+
+
+def test_logs_rejects_nonsense_threshold(monkeypatch, capsys, tmp_path):
+    sample = tmp_path / "auth.log"
+    sample.write_text("nothing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        sys, "argv", ["sentinelkit", "logs", "--threshold", "0", str(sample)]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 2
+
+
+class _FakeStdin:
+    def __init__(self, text: str):
+        self._text = text
+        self.buffer = _FakeBuffer(text.encode("utf-8"))
+
+    def read(self) -> str:
+        return self._text
+
+
+class _FakeBuffer:
+    def __init__(self, data: bytes):
+        self._data = data
+
+    def read(self) -> bytes:
+        return self._data
+
+
+def test_logs_rejects_nonsense_window(monkeypatch, capsys, tmp_path):
+    sample = tmp_path / "auth.log"
+    sample.write_text("nothing\n", encoding="utf-8")
+    monkeypatch.setattr(
+        sys, "argv", ["sentinelkit", "logs", "--window", "0", str(sample)]
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        main()
+
+    assert exc_info.value.code == 2
+
+
+def test_text_format_prints_plain_values(monkeypatch, capsys):
+    _print("just a string", "text")
+
+    assert capsys.readouterr().out.strip() == "just a string"

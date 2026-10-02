@@ -10,7 +10,7 @@ SentinelKit supports Python 3.10 through 3.13.
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 python -m pip install --upgrade pip
-python -m pip install -e . pytest ruff
+python -m pip install -e . pytest ruff mypy coverage
 ```
 
 ## Validate a change
@@ -20,7 +20,9 @@ Run the same core checks enforced by CI before opening a pull request:
 ```bash
 ruff check src tests
 ruff format --check src tests
-pytest -q
+mypy src
+coverage run -m pytest -q
+coverage report
 sentinelkit --help
 ```
 

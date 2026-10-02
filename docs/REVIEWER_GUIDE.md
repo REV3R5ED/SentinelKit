@@ -28,10 +28,12 @@ The test suite is the quickest way to verify that parsing, normalization, classi
 sentinelkit hash ./sample.bin
 sentinelkit ip 8.8.8.8
 sentinelkit ioc ./sample.log
+sentinelkit triage ./sample.log
 sentinelkit logs ./auth.log
+sentinelkit ioc --format stix ./sample.log
 ```
 
-These commands cover the project's core portfolio story: local artifact inspection, network-indicator classification, IOC extraction, and authentication-log triage.
+These commands cover the project's core portfolio story: local artifact inspection, network-indicator classification, IOC extraction, explainable triage, authentication-log analysis, and STIX 2.1 export for threat-intel handoff.
 
 ### 4. Inspect the implementation
 

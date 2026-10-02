@@ -66,9 +66,9 @@ def test_enrichment_flags_ip_literal_url_host():
 
 
 def test_enrichment_flags_blocklisted_hash_and_domain(tmp_path):
-    config_file = tmp_path / "blocklists.toml"
+    config_file = tmp_path / "blocklists.yaml"
     config_file.write_text(
-        f'[blocklists]\nhashes = ["{"a" * 64}"]\ndomains = ["evil.example"]\n',
+        "hashes:\n  - " + "a" * 64 + "\ndomains:\n  - evil.example\n",
         encoding="utf-8",
     )
     config = load_enrichment_config(config_file)
@@ -106,6 +106,9 @@ def test_load_enrichment_config_rejects_unsupported_suffix(tmp_path):
         load_enrichment_config(config_file)
 
 
+@pytest.mark.skipif(
+    sys.version_info < (3, 11), reason="stdlib tomllib needs Python 3.11+"
+)
 def test_load_enrichment_config_rejects_broken_toml(tmp_path):
     config_file = tmp_path / "blocklists.toml"
     config_file.write_text("[blocklists\nhashes = [", encoding="utf-8")

@@ -237,8 +237,8 @@ def test_stix_format_accepted_before_or_after_subcommand(monkeypatch, capsys, ar
 def test_triage_enrich_flag_applies_blocklists(monkeypatch, capsys, tmp_path):
     case = tmp_path / "case.txt"
     case.write_text("saw beacon to evil.example", encoding="utf-8")
-    config = tmp_path / "blocklists.toml"
-    config.write_text('[blocklists]\ndomains = ["evil.example"]\n', encoding="utf-8")
+    config = tmp_path / "blocklists.yaml"
+    config.write_text("domains:\n  - evil.example\n", encoding="utf-8")
     monkeypatch.setattr(
         sys,
         "argv",

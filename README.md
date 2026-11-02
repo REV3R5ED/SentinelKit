@@ -21,12 +21,12 @@ SentinelKit gives analysts scriptable command-line utilities for IOC extraction,
 
 Requires Python 3.10+.
 
-Install from the repository (pre-release; no tagged release yet):
+Install the published v0.1.0 release wheel from GitHub:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-python -m pip install "git+https://github.com/REV3R5ED/SentinelKit.git"
+python -m pip install https://github.com/REV3R5ED/SentinelKit/releases/download/v0.1.0/sentinelkit-0.1.0-py3-none-any.whl
 sentinelkit --help
 ```
 
